@@ -6,3 +6,5 @@ An old version of the paper (which may be quite different from the submitted one
 ETRIDriving, the autonomous driving dataset for the training and the evaluation, can be found at https://github.com/d1024choi/etridriving.
 
 ## Preparation
+1) DATASET
+  a)
