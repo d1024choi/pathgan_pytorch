@@ -63,7 +63,7 @@ def cross_entropy_loss(logit, target):
 def l2_loss(pred_traj, pred_traj_gt):
 
     seq_len, batch, _ = pred_traj.size()
-    loss = (pred_traj_gt.permute(1, 0, 2) - pred_traj.permute(1, 0, 2))**2
+    loss = (pred_traj_gt - pred_traj)**2
 
     return torch.sum(loss) / (seq_len * batch)
 
@@ -298,73 +298,6 @@ def generate_drvint_text(drv_intention_code):
         text = 'Right Way'
 
     return text
-
-
-# ---------------------------------------------------------------
-# for evaluation
-# ---------------------------------------------------------------
-def calculate_error_vector(true_traj, est_traj, pred_length):
-
-    seq_length = true_traj.shape[0]
-    obs_length = seq_length - pred_length
-    error_traj = true_traj - est_traj
-
-    return error_traj[obs_length:seq_length, 0:2]
-
-
-# ---------------------------------------------------------------
-# draw on images
-# ---------------------------------------------------------------
-def draw_path_drvint_on_topview(img, M, scale, color, pels, drvints, iscrop, isLeft):
-
-    # parameters
-    thickness = 2
-    seq_len, dim = pels.shape
-    img_h, img_w, ch = img.shape
-    code_b, code_g, code_r = color
-
-    # conversion to topview coordinate
-    pels = pels - 200 # 20 x 2
-    pels_homo = np.concatenate([pels, np.ones(shape=(seq_len, 1))], axis=1) # 20 x 3
-    pels_warp = (np.matmul(M, pels_homo.T).T)
-    pels_warp[:, 0] = np.divide(pels_warp[:, 0], pels_warp[:, 2])
-    pels_warp[:, 1] = np.divide(pels_warp[:, 1], pels_warp[:, 2])
-    pels_warp = (scale * pels_warp).astype('int')
-
-    # draw path on topview image
-    for i in range(1, seq_len):
-
-        x_cur = pels_warp[i, 0]
-        y_cur = pels_warp[i, 1]
-
-        x_prev = pels_warp[i-1, 0]
-        y_prev = pels_warp[i-1, 1]
-
-        if (x_cur < 0 or x_cur > img_w - 1 or y_cur > img_h - 1):
-            continue
-
-        if (x_prev < 0 or x_prev > img_w - 1 or y_prev > img_h - 1):
-            continue
-
-        drvint_text = generate_drvint_text(drvints[i-1])
-        weight = 1
-        img = cv2.circle(img, (x_cur, y_cur), thickness + 1, (weight*code_b, weight*code_g, weight*code_r), -1)
-        img = cv2.line(img, (x_cur, y_cur), (x_prev, y_prev), (weight*code_b, weight*code_g, weight*code_r), thickness)
-
-        if (i % 2 == 1):
-            if (isLeft == True):
-                img = cv2.putText(img, drvint_text, (x_cur-30, y_cur), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
-                                  (weight * code_b, weight * code_g, weight * code_r), 1)
-            else:
-                img = cv2.putText(img, drvint_text, (x_cur + 10, y_cur), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
-                                  (weight * code_b, weight * code_g, weight * code_r), 1)
-
-    if (iscrop == True):
-        return img[:, 800:-800, :].astype('uint8')
-    else:
-        return img
-
-
 
 
 # ---------------------------------------------------------------

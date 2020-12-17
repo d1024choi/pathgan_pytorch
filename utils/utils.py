@@ -185,26 +185,25 @@ class DatasetBuilder:
 
 
                 # --------------------------------------
-                # valancing data distribution
+                # balancing data distribution
                 # --------------------------------------
                 reject_prob = 0.95
                 if (curr_seq_data[0, 11] < self.min_car_speed and np.random.rand(1) > (1-reject_prob)):
                     # print('[frm %d] car speed is too slow' % (i))
                     continue
 
-                reject_prob = 0.125
+                reject_prob = 0.85 # 1 - 0.125
                 drvact_list_prev = past_seq_data[:, 14].tolist()
                 drvact_list_prev.append(curr_seq_data[0, 14])
-
                 drvact_list_curr = curr_seq_data[:, 14].tolist()
                 if (True in (np.array(drvact_list_prev) > 1).tolist()):
-                    # print('[frm %d] current go signal is right after the other actions.. so accepted' % (i))
+                    # print('[frm %d] there are other actions than \'Go\' in the past \'0.1*obs_seq_len\' sec.. accepted' % (i))
                     do_nothing = 0
                 elif (True in (np.array(drvact_list_curr) > 1).tolist() and np.random.rand(1) > 0.5):
-                    # print('[frm %d] current go signal is before the other actions.. so accepted' % (i))
+                    # print('[frm %d] current action is \'Go\' but other actions exist in the future.. accepted w.p 0.5' % (i))
                     do_nothing = 0
-                elif (np.random.rand(1) > reject_prob):
-                    # print('[frm %d] current go signal is not accepted % (i))
+                elif (np.random.rand(1) < reject_prob):
+                    # print('[frm %d] current go signal is rejected w.p. \'reject_prob\' % (i))
                     continue
 
 
@@ -323,29 +322,29 @@ class DatasetBuilder:
                 if (path_dist < 10):
                     print('{' + dataset_name[p] + '_frmidx%d_drvsts%d} path distance %d meter is smaller than 10 meter' % (i, curr_seq_data[0,14], path_dist))
 
-                # -------------------------------------
-                # cam0 view
-                # -------------------------------------
-                K, Rt = dataset_cali[p]
-                img_number = int(curr_seq_data[0, 8])
-                img = self.read_image(dataset_name[p], int(img_number))
-                for m in range(self.obs_seq_len, overall_path_ego.shape[0]):
-
-                    A = np.matmul(np.linalg.inv(Rt), overall_path_ego[m, :].reshape(4, 1))
-                    B = np.matmul(K, A)
-
-                    x = int(B[0, 0] * 0.5 / B[2, 0])
-                    y = int(B[1, 0] * 0.88 / B[2, 0])
-
-                    if (x < 0 or x > 640 - 1 or y > 320 - 1):
-                        continue
-                    img = cv2.circle(img, (x, y), 3, (0, 0, 255), -1)
-
-                text = dataset_name[p] + '_' + str(int(curr_seq_data[0, 0]))
-                cv2.putText(img, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-
-                cv2.imshow('test', img)
-                cv2.waitKey(0)
+                # # -------------------------------------
+                # # cam0 view
+                # # -------------------------------------
+                # K, Rt = dataset_cali[p]
+                # img_number = int(curr_seq_data[0, 8])
+                # img = self.read_image(dataset_name[p], int(img_number))
+                # for m in range(self.obs_seq_len, overall_path_ego.shape[0]):
+                #
+                #     A = np.matmul(np.linalg.inv(Rt), overall_path_ego[m, :].reshape(4, 1))
+                #     B = np.matmul(K, A)
+                #
+                #     x = int(B[0, 0] * 0.5 / B[2, 0])
+                #     y = int(B[1, 0] * 0.88 / B[2, 0])
+                #
+                #     if (x < 0 or x > 640 - 1 or y > 320 - 1):
+                #         continue
+                #     img = cv2.circle(img, (x, y), 3, (0, 0, 255), -1)
+                #
+                # text = dataset_name[p] + '_' + str(int(curr_seq_data[0, 0]))
+                # cv2.putText(img, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                #
+                # cv2.imshow('test', img)
+                # cv2.waitKey(0)
 
                 if (dataset_type[p] == 'train'):
                     if (np.random.rand(1) < self.val_ratio):
@@ -433,7 +432,7 @@ class DatasetBuilder:
             path3d_batch.append(overall_path_ego)
             pm_batch.append(Pm)
             drvsts_batch.append(dp_seq)
-            depth_batch.append(self.read_depth(self.dataset_names[did], int(img_num[0])))
+            # depth_batch.append(self.read_depth(self.dataset_names[did], int(img_num[0])))
             steer_batch.append(steer / 30.0)
 
         return xi_batch, xo_batch, xp_batch, do_batch, dp_batch, img_batch, did_batch, path3d_batch, pm_batch, img_ori_batch, steer_batch
