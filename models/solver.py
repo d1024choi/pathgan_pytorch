@@ -4,74 +4,77 @@ def generator_step(args, PathGen, PathDis, optimizer_g, optimizer_c, xo, xp, dp_
 
 
     '''
-    0 : true label
-    1 : false label
+    xo : displacement between positions in past traj (or speed)
+    xp : displacement between positions in future path
+    dp : onehot vector for input driving intention
+    dp_seq : sequence of onehot vectors for sequential driving intentions
     '''
 
     # overall loss
     loss = torch.zeros(1).to(xo)
 
     # ---------------------------
-    # generate paths with true label
+    # generate paths
     # ---------------------------
 
     # traj generation
-    overall_xp_tl, overall_drvint_logits, _ = PathGen(xo, dp_onehot, conv_out, args.best_k)
-    overall_xp_tl_stack = torch.stack(overall_xp_tl) # best_k x seq_len x batch x 2
+    overall_xp_gen, overall_seqdrvint_logits, _ = PathGen(xo, dp_onehot, conv_out, args.best_k)
+    overall_xp_gen_stack = torch.stack(overall_xp_gen) # best_k x seq_len x batch x 2
 
     # find path with min err
-    overall_xp_tl_np = overall_xp_tl_stack.detach().to('cpu').numpy()
+    overall_xp_gen_np = overall_xp_gen_stack.detach().to('cpu').numpy()
     xp_np = xp.detach().to('cpu').numpy() # seq_len x batch x 2
 
     min_idx_batch = []
-    max_idx_batch = []
     for b in range(args.batch_size):
         cur_xp = xp_np[:, b, :] # seq_len x 2
-        cur_xp_tls = overall_xp_tl_np[:, :, b, :] # best_k x seq_len x 2
+        cur_xp_gen = overall_xp_gen_np[:, :, b, :] # best_k x seq_len x 2
         cur_mse_losses = []
         for z in range(args.best_k):
-            err = np.mean((cur_xp - cur_xp_tls[z, :, :])**2)
+            err = np.mean((cur_xp - cur_xp_gen[z, :, :])**2)
             cur_mse_losses.append(err)
-
         min_idx_batch.append(np.argmin(np.array(cur_mse_losses)))
-        max_idx_batch.append(np.argmax(np.array(cur_mse_losses)))
 
-    best_xp_tl = []
+    best_xp_gen = []
     for b in range(args.batch_size):
-        best_xp_tl.append(overall_xp_tl_stack[:, :, b, :][min_idx_batch[b]])
+        best_xp_gen.append(overall_xp_gen_stack[:, :, b, :][min_idx_batch[b]])
 
     # random path selection
-    xp_tl = overall_xp_tl_stack[args.best_k - 1]
-    drvint_logits_tl = torch.stack(overall_drvint_logits)[args.best_k - 1]
+    xp_gen = overall_xp_gen_stack[args.best_k - 1]
+    seqdrvint_logits = torch.stack(overall_seqdrvint_logits)[args.best_k - 1]
 
 
     # ----------------------------------------------
-    # path discrimination, TODO : how to implement soft one-hot vector?
+    # path discrimination
     # ----------------------------------------------
-    drvint_prob_tl = F.softmax(drvint_logits_tl, dim=2)
-    out_scr_tl, out_cls_tl, out_scr_drvint_tl = PathDis(xp_tl, conv_out, drvint_prob_tl)
+    seqdrvint_prob = F.softmax(seqdrvint_logits, dim=2)
+    out_scr, out_cls, out_scr_seqdrvint = PathDis(xp_gen, conv_out, seqdrvint_prob)
 
+
+    # ---------------------------
+    # loss calculation
+    # ---------------------------
+
+    # g loss
+    g_loss_bce = gan_g_loss(out_scr)
+    g_loss_bce_seqdrvint = gan_g_loss(out_scr_seqdrvint)
+
+    # classification loss
+    g_loss_cls = cross_entropy_loss(out_cls, dp_onehot)
+    g_loss_seqdrvint_cls = cross_entropy_loss(seqdrvint_logits.view(-1, 10), dp_seq[1:, :, :].view(-1, 10))
 
     # ---------------------------
     # final loss
     # ---------------------------
 
-    # g loss
-    g_loss_bce_0 = gan_g_loss(out_scr_tl)
-    g_loss_bce_drvint = gan_g_loss(out_scr_drvint_tl)
-
-    # classification loss
-    g_loss_cls_0 = cross_entropy_loss(out_cls_tl, dp_onehot)
-    g_loss_drvsts_cls_0 = cross_entropy_loss(drvint_logits_tl.view(-1, 10), dp_seq[1:, :, :].view(-1, 10))
-
     # mse
-    g_loss_mse = l2_loss(xp.permute(1, 0, 2), torch.stack(best_xp_tl))
+    g_loss_mse = l2_loss(xp.permute(1, 0, 2), torch.stack(best_xp_gen))
 
     # score
-    g_loss_bce = g_loss_bce_0 + (args.alpha*g_loss_bce_drvint)
+    g_loss_bce += args.alpha*g_loss_bce_seqdrvint
 
     # class
-    g_loss_cls = g_loss_cls_0 + (args.theta*g_loss_drvsts_cls_0)
+    g_loss_cls += args.theta*g_loss_seqdrvint_cls
 
     # final
     loss += (g_loss_bce + g_loss_cls + args.kappa*g_loss_mse)
@@ -94,10 +97,11 @@ def generator_step(args, PathGen, PathDis, optimizer_g, optimizer_c, xo, xp, dp_
 def discriminator_step(args, PathGen, PathDis, optimizer_d, optimizer_c, xo, xp, dp_onehot, dp_onehot_fake, conv_out, dp_seq):
 
     '''
-    0 : true label
-    1 : false label
+    xo : displacement between positions in past traj (or speed)
+    xp : displacement between positions in future path
+    dp : onehot vector for input driving intention
+    dp_seq : sequence of onehot vectors for sequential driving intentions
     '''
-
 
     # overall loss
     loss = torch.zeros(1).to(xo)
@@ -105,18 +109,16 @@ def discriminator_step(args, PathGen, PathDis, optimizer_d, optimizer_c, xo, xp,
     # ---------------------------
     # operation with real path
     # ---------------------------
-    
-    # real future path, updated, 200212
-    out_scr_real, out_cls_real, out_drvint_real = PathDis(xp, conv_out, dp_seq[1:, :, :])
 
+    # real future path
+    out_scr_real, out_cls_real, out_seqdrvint_real = PathDis(xp, conv_out, dp_seq[1:, :, :])
 
     # ---------------------------
-    # operation with fake path - true label
+    # operation with fake path
     # ---------------------------
-    xp_fake, drvint_logits_fake, _ = PathGen(xo, dp_onehot, conv_out, 1)
-    drvint_prob_fake = F.softmax(drvint_logits_fake[0], dim=2)
-    out_scr_fake, __, out_drvsts_fake = PathDis(xp_fake[0].detach(), conv_out, drvint_prob_fake.detach())
-
+    xp_fake, seqdrvint_logits, _ = PathGen(xo, dp_onehot, conv_out, 1)
+    drvint_prob_fake = F.softmax(seqdrvint_logits[0], dim=2)
+    out_scr_fake, _, out_seqdrvint_fake = PathDis(xp_fake[0].detach(), conv_out, drvint_prob_fake.detach())
 
     # ---------------------------
     # calculate loss
@@ -124,19 +126,20 @@ def discriminator_step(args, PathGen, PathDis, optimizer_d, optimizer_c, xo, xp,
 
     # reality score
     if (np.random.rand(1) < args.label_flip_prob):
-        d_loss_bce_real0, d_loss_bce_fake0 = gan_d_loss(out_scr_fake, out_scr_real)
-        d_loss_bce_drvint_real, d_loss_bce_drvint_fake = gan_d_loss(out_drvsts_fake, out_drvint_real)
+        d_loss_bce_real, d_loss_bce_fake = gan_d_loss(out_scr_fake, out_scr_real)
+        d_loss_bce_seqdrvint_real, d_loss_bce_seqdrvint_fake = gan_d_loss(out_seqdrvint_fake, out_seqdrvint_real)
     else:
-        d_loss_bce_real0, d_loss_bce_fake0 = gan_d_loss(out_scr_real, out_scr_fake)
-        d_loss_bce_drvint_real, d_loss_bce_drvint_fake = gan_d_loss(out_drvint_real, out_drvsts_fake)
+        d_loss_bce_real, d_loss_bce_fake = gan_d_loss(out_scr_real, out_scr_fake)
+        d_loss_bce_seqdrvint_real, d_loss_bce_seqdrvint_fake = gan_d_loss(out_seqdrvint_real, out_seqdrvint_fake)
 
     # classification loss
-    d_loss_cls_real0 = cross_entropy_loss(out_cls_real, dp_onehot)
+    d_loss_cls_real = cross_entropy_loss(out_cls_real, dp_onehot)
 
     # ---------------------------
     # # Final loss
     # ---------------------------
-    loss += (d_loss_bce_fake0 + d_loss_bce_real0 + d_loss_cls_real0) + args.beta*(d_loss_bce_drvint_real + d_loss_bce_drvint_fake)
+    loss += (d_loss_bce_fake + d_loss_bce_real + d_loss_cls_real) + args.beta * (d_loss_bce_seqdrvint_real + d_loss_bce_seqdrvint_fake)
+
 
     # ---------------------------
     # backpropagation
@@ -149,9 +152,8 @@ def discriminator_step(args, PathGen, PathDis, optimizer_d, optimizer_c, xo, xp,
     optimizer_d.step()
     optimizer_c.step()
 
-    losses = [d_loss_bce_real0.item(), d_loss_bce_fake0.item(), d_loss_cls_real0.item()]
+    losses = [d_loss_bce_real.item(), d_loss_bce_fake.item(), d_loss_cls_real.item()]
     return losses
-
 
 def evaluator_step(PathGen, ResNet, data_loader, dtype, args, e):
 
