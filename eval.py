@@ -70,6 +70,7 @@ def test(args):
 
 
     # evaluation setting
+    saved_args.dataset_path = '/home/dooseop/DATASET' ##### change path to dataset folder ####
     saved_args.batch_size = 1
     pred_length = saved_args.num_pos
     obs_length = saved_args.obs_seq_len
@@ -161,7 +162,7 @@ def test(args):
     print('ADE_best : %.4f, FDE_best : %.4f' % (np.mean(ADE_best), np.mean(FDE_best)))
     print('Diversity : %.4f' % (np.mean(diversity)))
     print('Marginal log prob : %.4f' % (np.mean(log_probs)))
-    print('>> MSE : %.4f' % np.mean(MSE))
+    print('MSE : %.4f' % np.mean(MSE))
 
 
 def print_current_progress(b, num_batchs, time_spent):

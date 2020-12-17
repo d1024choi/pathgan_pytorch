@@ -10,14 +10,6 @@ def get_noise(shape, noise_type):
 
 def make_mlp(dim_list, activation='relu', batch_norm=False, dropout=0):
 
-    '''
-    Make multi-layer perceptron
-    example) (dim_list = [32, 64, 16], activation='relu', batch_norm=False, dropout=0)
-             will make two fully-connected layers.
-             1) fully-connected layer 1 of size (32 x 64), with 'relu' activation, without batch_norm, with dropout prob. 0
-             2) fully-connected layer 2 of size (64 x 16), with 'relu' activation, without batch_norm, with dropout prob. 0
-    '''
-
     layers = []
     for dim_in, dim_out in zip(dim_list[:-1], dim_list[1:]):
         layers.append(nn.Linear(dim_in, dim_out))
