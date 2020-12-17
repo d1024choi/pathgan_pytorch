@@ -25,7 +25,6 @@ def test(args):
     # load parameter setting
     with open(os.path.join(path, 'config.pkl'), 'rb') as f:
         saved_args = pickle.load(f)
-    
 
     # generator define
     long_dtype, float_dtype = get_dtypes(useGPU=True)
@@ -74,10 +73,9 @@ def test(args):
     for b in range(0, data_loader.num_test_scenes, 1):
 
         # read data
-        xi_batch, xo_batch, _, _, dp_batch, img_batch, _, path3d_batch, _, _, _ = \
+        _, xo_batch, _, _, dp_batch, img_batch, _, path3d_batch, _, _, _ = \
             data_loader.next_batch_eval([b], mode='test')
 
-        xi = xi_batch[0]
         xo = xo_batch[0]
         dp = dp_batch[0]
         img = img_batch[0]
@@ -90,21 +88,28 @@ def test(args):
         dp_onehot, _ = drvint_onehot_batch([dp], float_dtype)
 
 
-        # prediction with gt label
+        # path generation
         start = time.time()
         overall_gen_offsets, _, _ = PathGen(xo_tensor, dp_onehot, ResNet(imgs_tensor), saved_args.best_k)
         end = time.time()
 
 
-        # reconstruct samples
+        # reconstruct paths
         all_gen_paths = []
         err_values = np.zeros(shape=(saved_args.best_k))
         for z in range(saved_args.best_k):
             gen_offsets = np.squeeze(overall_gen_offsets[z].detach().to('cpu').numpy())
             gen_recon = np.cumsum(gen_offsets, axis=0)
             all_gen_paths.append(gen_recon)
-
             err_values[z] = np.sum(abs(gen_recon - path3d[obs_length:, 0:2]))
+
+
+        # cal ADE & FDE
+        min_idx = np.argmin(err_values)
+        err_vector = path3d[obs_length:, 0:2] - all_gen_paths[min_idx]
+        displacement_error = np.sqrt(np.sum(err_vector ** 2, axis=1))
+        ADE_best.append(displacement_error[:])
+        FDE_best.append(displacement_error[-1])
 
 
         # calc diversity
@@ -119,7 +124,7 @@ def test(args):
                     diversity.append(dist)
 
 
-        # calc marginal log prob
+        # calc marginal log likelihood
         all_gen_paths = np.squeeze(np.array(all_gen_paths))
         for t in range(pred_length):
             gen_data = all_gen_paths[:, t, :]  # (n_samples, n_features)
@@ -129,13 +134,6 @@ def test(args):
             gt_data = path3d[obs_length + t, 0:2].reshape(1, 2)
             log_probs.append(kde.score_samples(gt_data))
 
-
-        # cal ADE & FDE
-        min_idx = np.argmin(err_values)
-        err_vector = calculate_error_vector(path3d[obs_length:, 0:2], all_gen_paths[min_idx])
-        displacement_error = np.sqrt(np.sum(err_vector ** 2, axis=1))
-        ADE_best.append(displacement_error[:])
-        FDE_best.append(displacement_error[-1])
 
         # current status
         print_current_progress(b, data_loader.num_test_scenes, (end-start))

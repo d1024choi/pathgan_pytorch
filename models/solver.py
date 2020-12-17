@@ -17,7 +17,7 @@ def generator_step(args, PathGen, PathDis, optimizer_g, optimizer_c, xo, xp, dp_
     # generate paths
     # ---------------------------
 
-    # traj generation
+    # path generation
     overall_xp_gen, overall_seqdrvint_logits, _ = PathGen(xo, dp_onehot, conv_out, args.best_k)
     overall_xp_gen_stack = torch.stack(overall_xp_gen) # best_k x seq_len x batch x 2
 
