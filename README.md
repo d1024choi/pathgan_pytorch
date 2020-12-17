@@ -12,10 +12,10 @@ ETRIDriving, the autonomous driving dataset for the training and the evaluation,
   
 2) Libraries
   * python 3.6  
-  pytorch 1.1.0  
-  torchvision 0.3.0  
-  opencv 3.1 >=  
-  scipy 1.3.0 >=  
-  scikit-image 0.14 >=
-  scikit-learn 0.22 >=  
+  * pytorch 1.1.0  
+  * torchvision 0.3.0  
+  * opencv 3.1 >=  
+  * scipy 1.3.0 >=  
+  * scikit-image 0.14 >=
+  * scikit-learn 0.22 >=  
   
