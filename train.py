@@ -186,6 +186,16 @@ def train(args):
             # ------------------------------------------
             # data load and conversion
             # ------------------------------------------
+            '''
+            xi : first element of past traj
+            xo : displacement between positions in past traj (or speed)
+            xp : displacement between positions in future path
+            alt : altitudes corresponding to {past traj; future path}
+            dp : onehot vector for input driving intention
+            dp_fake : a fake version of dp (for examples, an input driving intention is randomly selected)
+            pm/pminv : transformation matrix and its inverse
+            dp_seq : sequence of onehot vectors for sequential driving intentions
+            '''
             xi, xo, xp, alt, dp, dp_fake, imgs, pm, pminv, dp_seq = data
 
             xo_cuda = xo.permute(1, 0, 2).cuda()
@@ -193,7 +203,7 @@ def train(args):
             dp_cuda = torch.squeeze(dp).cuda()
             dp_fake_cuda = torch.squeeze(dp_fake).cuda()
             imgs_cuda = imgs.cuda()
-            dp_seq_cuda = dp_seq.permute(1, 0, 2).contiguous().cuda() # seq_len x batch x onehot_dim
+            dp_seq_cuda = dp_seq.permute(1, 0, 2).contiguous().cuda()
 
 
             # ------------------------------------------

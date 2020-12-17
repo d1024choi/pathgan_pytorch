@@ -25,7 +25,7 @@ def test(args):
     # load parameter setting
     with open(os.path.join(path, 'config.pkl'), 'rb') as f:
         saved_args = pickle.load(f)
-    print_training_info(saved_args)
+    
 
     # generator define
     long_dtype, float_dtype = get_dtypes(useGPU=True)
