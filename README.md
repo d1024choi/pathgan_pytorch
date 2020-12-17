@@ -12,7 +12,6 @@ ETRIDriving, the autonomous driving dataset for the training and the evaluation,
 
 2) Pretrained Network Params  
     * Create a folder './pretrained_cnn' and copy 'saved_cnn_exp12_model70.pt' (link) into the created folder.  
-    * (Optional) if you want to evaluate our trained model, copy folders ('model0', 'model1', 'model2', link) into './saved_models'.  
 
 3) Libraries
     * python 3.6  
@@ -23,3 +22,8 @@ ETRIDriving, the autonomous driving dataset for the training and the evaluation,
     * scikit-image 0.14 >=
     * scikit-learn 0.22 >=  
   
+## Train New Models
+To train the model from scratch, run the followings. The parameters of the trained networks will be stored at the folder './saved_models/model0'.
+```sh
+$ python train.py --exp_id 0
+```
