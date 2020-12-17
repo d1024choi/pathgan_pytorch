@@ -2,6 +2,7 @@ from sklearn.neighbors import KernelDensity
 from utils.utils import DatasetBuilder
 from utils.functions import *
 from models.model import PathGenerator, ConvNet
+from steer_model.steer_model import Encoder
 
 torch.backends.cudnn.benchmark = True
 
@@ -57,6 +58,17 @@ def test(args):
     ResNet.load_state_dict(checkpoint['resnet_state_dict'])
     print('>> trained parameters are loaded from {%s}, min ADE {%.4f}' % (file_path, checkpoint['ADE']))
 
+    # steer generator
+    SteerGen = Encoder(input_dim=2,
+                       embedding_dim=32,
+                       h_dim=32,
+                       num_layers=1,
+                       dropout=0.0)
+    SteerGen.type(float_dtype).eval()
+    checkpoint = torch.load('./steer_model/saved_chk_point_80.pt')
+    SteerGen.load_state_dict(checkpoint['steergen_state_dict'])
+
+
     # evaluation setting
     saved_args.batch_size = 1
     pred_length = saved_args.num_pos
@@ -67,19 +79,20 @@ def test(args):
     data_loader = DatasetBuilder(saved_args)
 
     # empty lists
-    ADE_best, FDE_best, log_probs, diversity = [], [], [], []
+    ADE_best, FDE_best, log_probs, diversity, MSE = [], [], [], [], []
 
     # for all test samples, do
     for b in range(0, data_loader.num_test_scenes, 1):
 
         # read data
-        _, xo_batch, _, _, dp_batch, img_batch, _, path3d_batch, _, _, _ = \
+        _, xo_batch, _, _, dp_batch, img_batch, _, path3d_batch, _, _, steer_batch = \
             data_loader.next_batch_eval([b], mode='test')
 
         xo = xo_batch[0]
         dp = dp_batch[0]
         img = img_batch[0]
         path3d = path3d_batch[0]
+        steer = steer_batch[0]
 
 
         # conversion to tensor
@@ -110,6 +123,11 @@ def test(args):
         displacement_error = np.sqrt(np.sum(err_vector ** 2, axis=1))
         ADE_best.append(displacement_error[:])
         FDE_best.append(displacement_error[-1])
+
+        # cal MSE-S
+        xp_est_tensor = overall_gen_offsets[min_idx]
+        est_steer = SteerGen(xo_tensor, xp_est_tensor).detach().to('cpu').numpy()
+        MSE.append((steer - est_steer[0])**2)
 
 
         # calc diversity
@@ -143,6 +161,7 @@ def test(args):
     print('ADE_best : %.4f, FDE_best : %.4f' % (np.mean(ADE_best), np.mean(FDE_best)))
     print('Diversity : %.4f' % (np.mean(diversity)))
     print('Marginal log prob : %.4f' % (np.mean(log_probs)))
+    print('>> MSE : %.4f' % np.mean(MSE))
 
 
 def print_current_progress(b, num_batchs, time_spent):
