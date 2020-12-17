@@ -7,14 +7,14 @@ ETRIDriving, the autonomous driving dataset for the training and the evaluation,
 
 ## Preparation
 1) DATASET  
-    * create a folder (for example, /home/dooseop/DATASET/) and copy the driving sequences listed in './dataset/train.txt' and './dataset/test.txt' into the created folder. (download: ---)  
-    * download 'preprocessed_dataset.cpkl' to './dataset/'. (download: ----)  
+    * Create a folder (for example, /home/dooseop/DATASET/) and copy the driving sequences (link) listed in './dataset/train.txt' and './dataset/test.txt' into the created folder.    
+    * Copy 'preprocessed_dataset.cpkl' (link) into './dataset/'.  
 
 2) Pretrained Network Params  
-    * create a folder './pretrained_cnn' and copy 'saved_cnn_exp12_model70.pt' file into the created folder.  
-    * (optional) if you want to evaluate our trained model, copy folders ('model0', 'model1', 'model2') into './saved_models'. (download: ---)  
+    * Create a folder './pretrained_cnn' and copy 'saved_cnn_exp12_model70.pt' (link) into the created folder.  
+    * (Optional) if you want to evaluate our trained model, copy folders ('model0', 'model1', 'model2', link) into './saved_models'.  
 
-2) Libraries
+3) Libraries
     * python 3.6  
     * pytorch 1.1.0  
     * torchvision 0.3.0  
