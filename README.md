@@ -6,9 +6,9 @@ An old version of the paper (which may be quite different from the submitted one
 ETRIDriving, the autonomous driving dataset for the training and the evaluation, can be found at https://github.com/d1024choi/etridriving.
 
 ## Preparation
-1) DATASET  
-  a) create a folder (for example, /home/dooseop/DATASET/) and copy the driving sequences listed in './dataset/train.txt' and './dataset/test.txt' into the created folder. (download: ---)  
-  b) download 'preprocessed_dataset.cpkl' to './dataset/'. (download: ----)  
+> 1) DATASET  
+> >  a) create a folder (for example, /home/dooseop/DATASET/) and copy the driving sequences listed in './dataset/train.txt' and './dataset/test.txt' into the created folder. (download: ---)  
+> >  b) download 'preprocessed_dataset.cpkl' to './dataset/'. (download: ----)  
 
 2) Pretrained Network Params  
   a) create a folder './pretrained_cnn' and copy 'saved_cnn_exp12_model70.pt' file into the created folder.  
