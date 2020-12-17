@@ -1,4 +1,4 @@
-# Official implementation codes for the paper "PathGAN: Local Path Planning with Generative Adversarial Networks".
+# Official implementation codes for the paper "PathGAN: Local Path Planning with Generative Adversarial Networks"
 
 The paper was submitted to CVPR 2021 and is now under review.
 
