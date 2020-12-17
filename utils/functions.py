@@ -10,13 +10,11 @@ import matplotlib.pyplot as plt
 import cv2
 import copy
 import argparse
-try:
-    from skimage import transform
-    import scipy
-    from scipy.interpolate import interp1d
-    from scipy.optimize import curve_fit
-except:
-    print("skimage, scipy libraries are unavailable..")
+from skimage import transform
+import scipy
+from scipy.interpolate import interp1d
+from scipy.optimize import curve_fit
+
 
 import torch
 import torch.optim as optim
@@ -372,27 +370,6 @@ def draw_path_drvint_on_topview(img, M, scale, color, pels, drvints, iscrop, isL
 # ---------------------------------------------------------------
 # etc
 # ---------------------------------------------------------------
-def print_training_info(args):
-
-    print("--------- Exp ID %d Setting ----------" % args.exp_id)
-    print("-------------------------------------")
-    for arg in vars(args):
-        if (arg == 'input_dim'):
-            print('1) Input Spec')
-        elif (arg == 'resnet_model'):
-            print('2) CNN Spec')
-        elif (arg == 'emb_dim_dec'):
-            print('3) Decoder Spec')
-        elif (arg == 'emb_dim_dis'):
-            print('3) Discriminator Spec')
-        elif (arg == 'dataset_path'):
-            print('4) Dataset Spec')
-        elif (arg == 'model_dir'):
-            print('5) Training Spec')
-
-        print('  .' + arg+': ' + str(getattr(args, arg)))
-    print("-------------------------------------")
-
 def print_current_progress(e, b, num_batchs, time_spent):
 
     if b == num_batchs-1:
