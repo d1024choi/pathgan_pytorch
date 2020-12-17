@@ -1,5 +1,3 @@
-import argparse
-
 from torch.utils.data import DataLoader
 from utils.utils import DatasetBuilder, DrivingStateDataset
 from utils.functions import *
@@ -7,86 +5,83 @@ from models.model import Load_Overall_Models
 from models.solver import generator_step, discriminator_step, evaluator_step
 
 def main():
+
     parser = argparse.ArgumentParser()
 
     # Inputs
-    parser.add_argument('--input_dim', type=int, default=2)
-    parser.add_argument('--onehot_dim', type=int, default=10)
-    parser.add_argument('--intend_dim', type=int, default=32)
-    parser.add_argument('--noise_dim', type=int, default=32)
+    parser.add_argument('--input_dim', type=int, default=2, help='')
+    parser.add_argument('--onehot_dim', type=int, default=10, help='dim. of driving action space')
+    parser.add_argument('--intend_dim', type=int, default=32, help='embedding dim. for onehot vector')
+    parser.add_argument('--noise_dim', type=int, default=32, help='')
 
     # CNN
-    '''
-    image size (128, 128) -> conv flat size 16
-    image size (256, 256) -> conv flat size 64
-    image size (640, 320) -> conv flat size 200
-    '''
-    parser.add_argument('--resnet_model', type=int, default=50)
-    parser.add_argument('--img_size_w', type=int, default=640)
-    parser.add_argument('--img_size_h', type=int, default=320)
-    parser.add_argument('--conv_flat_size', type=int, default=2048)
-    parser.add_argument('--pre_cnn_exp', type=int, default=12)
-    parser.add_argument('--pre_cnn_model', type=int, default=170)
+    parser.add_argument('--resnet_model', type=int, default=50, help='')
+    parser.add_argument('--img_size_w', type=int, default=640, help='')
+    parser.add_argument('--img_size_h', type=int, default=320, help='')
+    parser.add_argument('--conv_flat_size', type=int, default=2048, help='size of ch. dim. of ResNet\' output')
+    parser.add_argument('--pre_cnn_exp', type=int, default=12, help='')
+    parser.add_argument('--pre_cnn_model', type=int, default=170, help='')
 
     # Decoder
-    parser.add_argument('--emb_dim_dec', type=int, default=128)
-    parser.add_argument('--hid_dim_dec', type=int, default=128)
-    parser.add_argument('--num_layers_dec', type=int, default=1)
+    parser.add_argument('--emb_dim_dec', type=int, default=128, help='')
+    parser.add_argument('--hid_dim_dec', type=int, default=128, help='')
+    parser.add_argument('--num_layers_dec', type=int, default=1, help='')
 
 
     # Discriminator
-    parser.add_argument('--emb_dim_dis', type=int, default=128)
-    parser.add_argument('--hid_dim_dis', type=int, default=128)
-    parser.add_argument('--emb_dim_dis_drvact', type=int, default=32)
-    parser.add_argument('--hid_dim_dis_drvact', type=int, default=32)
-    parser.add_argument('--num_layers_dis', type=int, default=1)
+    parser.add_argument('--emb_dim_dis', type=int, default=128, help='')
+    parser.add_argument('--hid_dim_dis', type=int, default=128, help='')
+    parser.add_argument('--emb_dim_dis_drvact', type=int, default=32, help='')
+    parser.add_argument('--hid_dim_dis_drvact', type=int, default=32, help='')
+    parser.add_argument('--num_layers_dis', type=int, default=1, help='')
 
 
     # Dataset
-    parser.add_argument('--dataset_path', type=str, default='/home/dooseop/DATASET/')
-    parser.add_argument('--exp_id', type=int, default=2085)                              # -----------------
-    parser.add_argument('--data_load_step', type=int, default=1)
-    parser.add_argument('--obs_seq_len', type=int, default=10)
-    parser.add_argument('--path_len', type=float, default=20)
-    parser.add_argument('--num_pos', type=float, default=20)
-    parser.add_argument('--data_qual', type=float, default=0.05)
-    parser.add_argument('--min_car_speed', type=float, default=5)
-    parser.add_argument('--best_k', type=int, default=20)                                # -----------------
+    parser.add_argument('--dataset_path', type=str, default='/home/dooseop/DATASET/', help='driving sequences should be placed in here')
+    parser.add_argument('--exp_id', type=int, default=0, help='')
+    parser.add_argument('--data_load_step', type=int, default=1, help='')
+    parser.add_argument('--obs_seq_len', type=int, default=10, help='the number of previous frames')
+    parser.add_argument('--path_len', type=float, default=20, help='a length of a path')
+    parser.add_argument('--num_pos', type=float, default=20, help='a path of length \'path_len\' is defined with \'num_pos\' positions')
+    parser.add_argument('--data_qual', type=float, default=0.05, help='data frame with GPS localization error less than \'data_qual\' will be used')
+    parser.add_argument('--min_car_speed', type=float, default=5, help='data frame with car speed larger than \'min_car_speed\' will be used')
+    parser.add_argument('--val_ratio', type=float, default=0.1, help='\'val_ratio\' x 100 % of training data will be used for validation')
 
     # Training
     parser.add_argument('--model_dir', type=str, default='saved_models/model')
-    parser.add_argument('--load_pretrained', type=int, default=0)                       # -----------------
-    parser.add_argument('--start_epoch', type=int, default=0)                           # -----------------
-    parser.add_argument('--batch_size', type=int, default=32)                            # -----------------
-    parser.add_argument('--num_epochs', type=int, default=100)
-    parser.add_argument('--n_critic', type=int, default=2)
-    parser.add_argument('--val_ratio', type=float, default=0.1)
+    parser.add_argument('--load_pretrained', type=int, default=0, help='1: pre-trained network will be load, 0: scratch')
+    parser.add_argument('--start_epoch', type=int, default=0, help='')
+    parser.add_argument('--batch_size', type=int, default=32, help='')
+    parser.add_argument('--num_epochs', type=int, default=100, help='')
+    parser.add_argument('--n_critic', type=int, default=2, help='')
+    parser.add_argument('--best_k', type=int, default=20, help='the number of paths to be generated during training')
 
-    parser.add_argument('--beta1', type=float, default=0.5)
-    parser.add_argument('--grad_clip', type=float, default=1.5)
-    parser.add_argument('--learning_rate', type=float, default=0.0001)
-    parser.add_argument('--learning_rate_cnn', type=float, default=0.0001)
-    parser.add_argument('--l2_param', type=float, default=0.0000)
-    parser.add_argument('--alpha', type=float, default=0.01)
-    parser.add_argument('--kappa', type=float, default=100.0)
-    parser.add_argument('--theta', type=float, default=0.005)
-    parser.add_argument('--beta', type=float, default=0.001)
+    parser.add_argument('--beta1', type=float, default=0.5, help='')
+    parser.add_argument('--grad_clip', type=float, default=1.5, help='')
+    parser.add_argument('--learning_rate', type=float, default=0.0001, help='')
+    parser.add_argument('--learning_rate_cnn', type=float, default=0.0001, help='')
+    parser.add_argument('--l2_param', type=float, default=0.0000, help='')
+    parser.add_argument('--alpha', type=float, default=0.01, help='weight for bce loss (driving intention)')
+    parser.add_argument('--kappa', type=float, default=100.0, help='weight for variety loss')
+    parser.add_argument('--theta', type=float, default=0.005, help='weight for bce loss (sequential driving intention)')
+    parser.add_argument('--beta', type=float, default=0.001, help='weight for D loss (sequential driving intention)')
     parser.add_argument('--drop_prob_gen', type=float, default=0.0)
     parser.add_argument('--drop_prob_dis', type=float, default=0.0)
 
-    parser.add_argument('--is_avg_bgt', type=int, default=1)
-    parser.add_argument('--label_flip_prob', type=float, default=0.05)
+    parser.add_argument('--is_avg_bgt', type=int, default=1, help='1: apply image pre-processing, 0: original')
+    parser.add_argument('--label_flip_prob', type=float, default=0.05, help='GT becomes generated one w.p. \'label_flip_prob\'')
 
-    parser.add_argument('--max_num_chkpt', type=int, default=100)
-    parser.add_argument('--save_every', type=int, default=5)
-    parser.add_argument('--valid_step', type=int, default=2)
+    parser.add_argument('--max_num_chkpt', type=int, default=5, help='recent \'max_num_chkpt\' pts files will be stored')
+    parser.add_argument('--save_every', type=int, default=5, help='validate every \'save_every\' epochs')
+    parser.add_argument('--valid_step', type=int, default=2, help='')
 
     # pc setting
-    parser.add_argument('--multi_gpu', type=int, default=1)                             # -----------------
-    parser.add_argument('--num_cores', type=int, default=4)                             # -----------------
-
+    parser.add_argument('--multi_gpu', type=int, default=1, help='')
+    parser.add_argument('--num_cores', type=int, default=4, help='')
 
     args = parser.parse_args()
+
+    # train starts
     train(args)
 
 def train(args):
@@ -105,7 +100,7 @@ def train(args):
         os.makedirs(save_directory)
         args.load_pretrained = 0
 
-    # load saved training parameters or save current parameters
+    # load saved network parameters or save current parameters
     prev_ADE = 100000.0
     start_epoch = args.start_epoch
     if (args.load_pretrained == 1):
@@ -118,8 +113,6 @@ def train(args):
     else:
         with open(os.path.join(save_directory, 'config.pkl'), 'wb') as f:
             pickle.dump(args, f)
-
-    print_training_info(args)
 
 
     # ------------------------------------------
@@ -144,16 +137,15 @@ def train(args):
     # ------------------------------------------
     PathGen, PathDis, ResNet, opt_g, opt_d, opt_c = Load_Overall_Models(args, float_dtype)
 
-    # For ResNet, pretrained parameters are used ...
+    # For ResNet, pretrained parameters will be used ...
     if (args.load_pretrained == 0):
         pre_trained_cnn = './pretrained_cnn/saved_cnn_exp%d_model%d.pt' % (args.pre_cnn_exp, args.pre_cnn_model)
         chkpt_resnet = torch.load(pre_trained_cnn)
         ResNet.load_state_dict(chkpt_resnet['resnet_state_dict'])
         print('>> pre-trained cnn {%s} is loaded successfully...' % pre_trained_cnn)
 
-
     # load previously trained network
-    if (args.load_pretrained == 1):
+    else:
         ckp_idx = save_read_latest_checkpoint_num(os.path.join(save_directory), 0, isSave=False)
         file_name = save_directory + '/saved_chk_point_%d.pt' % ckp_idx
         checkpoint = torch.load(file_name)
@@ -263,11 +255,7 @@ def train(args):
                     'FDE': FDE}
                 torch.save(check_point, file_name)
                 print(">> current network is saved ...")
-                remove_past_checkpoint(os.path.join('./', save_directory), max_num=5)
-
-        if (e % 100 == 0 and e > 0):
-            copy_chkpt_every_N_epoch(args)
-
+                remove_past_checkpoint(os.path.join('./', save_directory), max_num=args.max_num_chkpt)
 
 
 if __name__ == '__main__':
