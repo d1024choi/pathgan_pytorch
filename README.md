@@ -23,7 +23,12 @@ ETRIDriving, the autonomous driving dataset for the training and the evaluation,
     * scikit-learn 0.22 >=  
   
 ## Train New Models
-To train the model from scratch, run the followings. The parameters of the trained networks will be stored at the folder './saved_models/model0'.
+To train the model from scratch, run the following. The parameters of the trained networks will be stored in './saved_models/model100'.
 ```sh
-$ python train.py --exp_id 0
+$ python train.py --exp_id 100
+```
+
+To evaluate the trained model, run the following.
+```sh
+$ python eval.py --exp_id 100
 ```
