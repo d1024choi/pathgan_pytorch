@@ -1,21 +1,6 @@
-'''
- ENCODER-DECODER BASED RNN MODEL FOR LOCAL PATH GENERATION
- MADE BY DOOSEOP CHOI (d1024.choi@etri.re.kr)
- VERSION : 2020-02-11
-'''
-
-from torchvision import models
 from utils.functions import *
 
 def make_mlp(dim_list, activation='relu', batch_norm=False, dropout=0):
-
-    '''
-    Make multi-layer perceptron
-    example) (dim_list = [32, 64, 16], activation='relu', batch_norm=False, dropout=0)
-             will make two fully-connected layers.
-             1) fully-connected layer 1 of size (32 x 64), with 'relu' activation, without batch_norm, with dropout prob. 0
-             2) fully-connected layer 2 of size (64 x 16), with 'relu' activation, without batch_norm, with dropout prob. 0
-    '''
 
     layers = []
     for dim_in, dim_out in zip(dim_list[:-1], dim_list[1:]):
@@ -76,21 +61,13 @@ class Encoder(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, obs_traj_rel, path):
-        """
-        Inputs:
-        - obs_traj: Tensor of shape (obs_len, batch, 2)
-        Output:
-        - final_h: Tensor of shape (self.num_layers, batch, self.h_dim)
-        """
 
-        # batch = path_rel.size(1)
-        # path = torch.cumsum(path_rel, dim=1)
         batch = path.size(1)
 
         obs_traj_embedding = self.spatial_embedding(path.view(-1, 2))
         obs_traj_embedding = obs_traj_embedding.view(-1, batch, self.embedding_dim)
-
         speed = torch.sqrt(torch.sum(obs_traj_rel[-1] ** 2, dim=1))
+
         h = torch.ones(self.num_layers, batch, self.h_dim).cuda()
         c = torch.zeros(self.num_layers, batch, self.h_dim).cuda()
         for b in range(batch):
@@ -99,12 +76,10 @@ class Encoder(nn.Module):
         state_tuple = (h, c)
         output, state = self.encoder(obs_traj_embedding, state_tuple)
 
-        return F.tanh(self.out(state[0]))
+        return torch.tanh(self.out(state[0]))
 
 def Load_Overall_Models(args, dtype):
 
-
-    # conv net
     SteerGen = Encoder(input_dim=args.input_dim,
                        embedding_dim=args.emb_dim_enc,
                        h_dim=args.hidden_dim_enc,
