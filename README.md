@@ -7,4 +7,6 @@ ETRIDriving, the autonomous driving dataset for the training and the evaluation,
 
 ## Preparation
 1) DATASET  
-  a)
+  a) create a folder (for example, /home/dooseop/DATASET/) and copy the driving sequences listed in './dataset/train.txt' and './dataset/test.txt' to the created folder.  
+  b) download 'preprocessed_dataset.cpkl' to './dataset/'  
+  
