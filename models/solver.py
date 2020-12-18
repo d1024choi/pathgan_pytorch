@@ -1,6 +1,6 @@
 from utils.functions import *
 
-def generator_step(args, PathGen, PathDis, optimizer_g, optimizer_c, xo, xp, dp_onehot, dp_onehot_fake, conv_out, dp_seq):
+def generator_step(args, PathGen, PathDis, optimizer_g, optimizer_c, xo, xp, dp_onehot, conv_out, dp_seq):
 
 
     '''
@@ -56,19 +56,19 @@ def generator_step(args, PathGen, PathDis, optimizer_g, optimizer_c, xo, xp, dp_
     # ---------------------------
 
     # g loss
-    g_loss_bce = gan_g_loss(out_scr)
-    g_loss_bce_seqdrvint = gan_g_loss(out_scr_seqdrvint)
+    g_loss_bce = gan_g_loss(out_scr) # reduce_to_mean
+    g_loss_bce_seqdrvint = gan_g_loss(out_scr_seqdrvint) # reduce_to_mean
 
     # classification loss
-    g_loss_cls = cross_entropy_loss(out_cls, dp_onehot)
-    g_loss_seqdrvint_cls = cross_entropy_loss(seqdrvint_logits.view(-1, 10), dp_seq[1:, :, :].view(-1, 10))
+    g_loss_cls = cross_entropy_loss(out_cls, dp_onehot) # reduce_to_mean
+    g_loss_seqdrvint_cls = cross_entropy_loss(seqdrvint_logits.view(-1, 10), dp_seq[1:, :, :].view(-1, 10)) # reduce_to_mean
 
     # ---------------------------
     # final loss
     # ---------------------------
 
     # mse
-    g_loss_mse = l2_loss(xp.permute(1, 0, 2), torch.stack(best_xp_gen))
+    g_loss_mse = l2_loss(xp.permute(1, 0, 2), torch.stack(best_xp_gen)) # reduce_to_mean
 
     # score
     g_loss_bce += args.alpha*g_loss_bce_seqdrvint
@@ -94,7 +94,7 @@ def generator_step(args, PathGen, PathDis, optimizer_g, optimizer_c, xo, xp, dp_
 
 
 
-def discriminator_step(args, PathGen, PathDis, optimizer_d, optimizer_c, xo, xp, dp_onehot, dp_onehot_fake, conv_out, dp_seq):
+def discriminator_step(args, PathGen, PathDis, optimizer_d, optimizer_c, xo, xp, dp_onehot, conv_out, dp_seq):
 
     '''
     xo : displacement between positions in past traj (or speed)
@@ -126,14 +126,14 @@ def discriminator_step(args, PathGen, PathDis, optimizer_d, optimizer_c, xo, xp,
 
     # reality score
     if (np.random.rand(1) < args.label_flip_prob):
-        d_loss_bce_real, d_loss_bce_fake = gan_d_loss(out_scr_fake, out_scr_real)
-        d_loss_bce_seqdrvint_real, d_loss_bce_seqdrvint_fake = gan_d_loss(out_seqdrvint_fake, out_seqdrvint_real)
+        d_loss_bce_real, d_loss_bce_fake = gan_d_loss(out_scr_fake, out_scr_real) # reduce_to_mean
+        d_loss_bce_seqdrvint_real, d_loss_bce_seqdrvint_fake = gan_d_loss(out_seqdrvint_fake, out_seqdrvint_real) # reduce_to_mean
     else:
-        d_loss_bce_real, d_loss_bce_fake = gan_d_loss(out_scr_real, out_scr_fake)
-        d_loss_bce_seqdrvint_real, d_loss_bce_seqdrvint_fake = gan_d_loss(out_seqdrvint_real, out_seqdrvint_fake)
+        d_loss_bce_real, d_loss_bce_fake = gan_d_loss(out_scr_real, out_scr_fake) # reduce_to_mean
+        d_loss_bce_seqdrvint_real, d_loss_bce_seqdrvint_fake = gan_d_loss(out_seqdrvint_real, out_seqdrvint_fake) # reduce_to_mean
 
     # classification loss
-    d_loss_cls_real = cross_entropy_loss(out_cls_real, dp_onehot)
+    d_loss_cls_real = cross_entropy_loss(out_cls_real, dp_onehot) # reduce_to_mean
 
     # ---------------------------
     # # Final loss

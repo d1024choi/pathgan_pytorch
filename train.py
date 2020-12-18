@@ -87,7 +87,7 @@ def main():
 def train(args):
 
     # -------------------------------------------
-    # Experiment settings
+    # Experimental settings
     # -------------------------------------------
     torch.backends.cudnn.benchmark = True
 
@@ -137,7 +137,7 @@ def train(args):
     # ------------------------------------------
     PathGen, PathDis, ResNet, opt_g, opt_d, opt_c = Load_Overall_Models(args, float_dtype)
 
-    # For ResNet, pretrained parameters will be used ...
+    # For ResNet, pretrained parameters will be used
     if (args.load_pretrained == 0):
         pre_trained_cnn = './pretrained_cnn/saved_cnn_exp%d_model%d.pt' % (args.pre_cnn_exp, args.pre_cnn_model)
         chkpt_resnet = torch.load(pre_trained_cnn)
@@ -216,13 +216,13 @@ def train(args):
             # training generator and discriminator
             # ------------------------------------------
             if (b % args.n_critic == 0):
-                g_mse, g_fake, g_class = generator_step(args, PathGen, PathDis, opt_g, opt_c, xo_cuda, xp_cuda, dp_cuda, dp_fake_cuda, conv_features, dp_seq_cuda)
+                g_mse, g_fake, g_class = generator_step(args, PathGen, PathDis, opt_g, opt_c, xo_cuda, xp_cuda, dp_cuda, conv_features, dp_seq_cuda)
                 g_mse_b += g_mse
                 g_fake_b += g_fake
                 g_class_b += g_class
 
             # train discriminator
-            d_real, d_fake, d_class = discriminator_step(args, PathGen, PathDis, opt_d, opt_c, xo_cuda, xp_cuda, dp_cuda, dp_fake_cuda, conv_features, dp_seq_cuda)
+            d_real, d_fake, d_class = discriminator_step(args, PathGen, PathDis, opt_d, opt_c, xo_cuda, xp_cuda, dp_cuda, conv_features, dp_seq_cuda)
             d_real_b += d_real
             d_fake_b += d_fake
             d_class_b += d_class

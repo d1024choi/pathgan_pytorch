@@ -1,5 +1,5 @@
-* ETRIDriving has 129 driving sequences. Each sequence in ETRIDriving is stored in the folder named after the sequence ID.
-For example, the sequence of ID '0000' is stored in the folder '0000'. the IDs of the training and test sequences were written 
+* ETRIDriving has 129 driving sequences. Each sequence is stored in the folder named after the sequence ID.
+For example, the sequence of ID '0000' is stored in the folder '0000'. The IDs of the training and test sequences were written 
 in 'train.txt' and 'test.txt', respectively.
 
 * '1009' in 'train.txt' is the part of the sequence '0009'. 
