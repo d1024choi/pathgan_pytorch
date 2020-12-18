@@ -60,9 +60,9 @@ def cross_entropy_loss(logit, target):
 
     return F.binary_cross_entropy_with_logits(logit, target, size_average=False) / logit.size(0)
 
-def l2_loss(pred_traj, pred_traj_gt):
+def l2_loss(pred_traj_gt, pred_traj):
 
-    seq_len, batch, _ = pred_traj.size()
+    batch, seq_len, _ = pred_traj.size()
     loss = (pred_traj_gt - pred_traj)**2
 
     return torch.sum(loss) / (seq_len * batch)

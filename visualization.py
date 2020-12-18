@@ -239,7 +239,7 @@ def draw_path_on_figure(path3d, ax, K, Rt, obs_length, seq_length, linewidth, co
 def path_generation(PathGen, xi, xo, path3d, xo_cuda, dp_cuda, conv_img, best_k):
 
 
-    overall_gen_offsets, overall_drvsts, weight_maps = PathGen(xo_cuda, dp_cuda, conv_img, best_k)
+    overall_gen_offsets, overall_seqdrvint, weight_maps = PathGen(xo_cuda, dp_cuda, conv_img, best_k)
 
     xo[0, :] = xi
     path3d_recon_k = []
@@ -256,7 +256,6 @@ def path_generation(PathGen, xi, xo, path3d, xo_cuda, dp_cuda, conv_img, best_k)
         errors.append(err)
 
     min_mse_idx = np.argmin(np.array(errors))
-    # min_mse_idx = np.argmax(np.array(errors))
     weight_maps_np = torch.squeeze(torch.stack(weight_maps)).detach().to('cpu').numpy()  # best_k x seq_len x 10 x 20
 
     return path3d_recon_k, weight_maps_np, min_mse_idx
