@@ -9,10 +9,10 @@ An old version of the paper can be found at https://arxiv.org/abs/2007.03877. An
 ## Preparation
 1) DATASET  
     * Create a folder (for example, /home/dooseop/DATASET/) and copy the driving sequences (link) listed in './dataset/train.txt' and './dataset/test.txt' into the created folder.    
-    * Copy 'preprocessed_dataset.cpkl' (link) into './dataset/'.  
+    * Copy 'preprocessed_dataset.cpkl' (https://www.dropbox.com/sh/ymj579oowpqlk0y/AABzOccIgaItbpIRNu99XOrea?dl=0) into './dataset/'.  
 
 2) Pretrained Network Params  
-    * Create a folder './pretrained_cnn' and copy 'saved_cnn_exp12_model70.pt' (link) into the created folder.  
+    * Create a folder './pretrained_cnn' and copy 'saved_cnn_exp12_model70.pt' (https://www.dropbox.com/sh/mdph47lt8l3kw8w/AADI1xVqf6uMCznwTcS-cCLFa?dl=0) into the created folder.  
 
 3) Libraries
     * python 3.6  
@@ -40,4 +40,4 @@ $ python visualization.py --exp_id 100 --model_num 95 --besk_k 300
 ```
 
 ## Pretrained Models
-Download the pre-trained models from (link) and copy them into './saved_models/'.  
+Download the pre-trained models from (https://www.dropbox.com/sh/7e17hoeom58x54d/AABjVUlTj67KQ55Whe40xEcQa?dl=0) and copy them into './saved_models/'.  
