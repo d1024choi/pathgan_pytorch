@@ -87,7 +87,7 @@ def main():
 def train(args):
 
     # -------------------------------------------
-    # Experimental settings
+    # Experimental settings,test
     # -------------------------------------------
     torch.backends.cudnn.benchmark = True
 
