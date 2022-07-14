@@ -1,4 +1,4 @@
-# Official implementation codes for the paper "PathGAN: Local Path Planning with Generative Adversarial Networks"
+# Official implementation of the paper "PathGAN: Local Path Planning with Attentive Generative Adversarial Networks"
 
 ![fig1](./images/fig1.png)
 
