@@ -41,3 +41,13 @@ $ python visualization.py --exp_id 100 --model_num 95 --besk_k 300
 
 ## Pretrained Models
 Download the pre-trained models from (https://www.dropbox.com/sh/7e17hoeom58x54d/AABjVUlTj67KQ55Whe40xEcQa?dl=0) and copy them into './saved_models/'.  
+
+## Citation
+```
+@InProceedings{Choi,
+ author = {D. Choi and K. Min},
+ title = {Hierarchical Latent Structure for Multi-Modal Vehicle Trajectory Forecasting},
+ booktitle = {arXiv:2007.03877},
+ year = {2021}
+}
+```
