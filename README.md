@@ -4,7 +4,7 @@
 
 Our path generation model is designed to generate multiple plausible paths that are consistent with the input driving intention and speed, from egocentric images.
 
-An old version of the paper can be found at https://arxiv.org/abs/2007.03877. An updated version of the paper was submitted to CVPR 2021 and is now under review. ETRIDriving, the autonomous driving dataset for the training and the evaluation, can be found at https://github.com/d1024choi/etridriving.
+The arxiv version of the paper can be found at https://arxiv.org/abs/2007.03877. ETRIDriving, the autonomous driving dataset for the training and the evaluation, can be found at https://github.com/d1024choi/etridriving.
 
 ## Preparation
 1) DATASET  
