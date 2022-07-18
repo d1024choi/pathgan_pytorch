@@ -45,8 +45,8 @@ Download the pre-trained models from (https://www.dropbox.com/sh/7e17hoeom58x54d
 ## Citation
 ```
 @InProceedings{Choi,
- author = {D. Choi and K. Min},
- title = {Hierarchical Latent Structure for Multi-Modal Vehicle Trajectory Forecasting},
+ author = {D. Choi and S.-J. Han and K. Min and J. Choi},
+ title = {PathGAN: Local Path Planning with Attentive Generative Adversarial Networks},
  booktitle = {arXiv:2007.03877},
  year = {2021}
 }
