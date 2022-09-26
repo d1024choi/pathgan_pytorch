@@ -1,4 +1,4 @@
-# The official implementation of the paper "PathGAN: Local Path Planning with Attentive Generative Adversarial Networks" accepted to ETRI Journal.
+# The official implementation of the paper "PathGAN: Local Path Planning with Attentive Generative Adversarial Networks" published in ETRI Journal.
 
 ![fig1](./images/fig1.png)
 
