@@ -44,10 +44,11 @@ Download the pre-trained models from (https://www.dropbox.com/sh/7e17hoeom58x54d
 
 ## Citation
 ```
-@InProceedings{Choi,
+@article{Choi,
  author = {D. Choi and S.-J. Han and K. Min and J. Choi},
  title = {PathGAN: Local Path Planning with Attentive Generative Adversarial Networks},
- booktitle = {arXiv:2007.03877},
- year = {2021}
+ journal = {ETRI Journal},
+ doi= {https://doi.org/10.4218/etrij.2021-0192},
+ year = {2022}
 }
 ```
